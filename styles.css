@@ -1,40 +1,116 @@
 /* Base styles */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
     margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #00AAFF, #00FF6C);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.calculator {
+    background-color: #2d2d2d;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     padding: 20px;
-    color: #333;
-    background-color: #f5f5f5;
+    width: 320px;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* Display */
+.display {
+    background-color: #1a1a1a;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: right;
+    color: white;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    word-wrap: break-word;
+    word-break: break-all;
 }
 
-h1 {
-    color: #2c3e50;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
+.previous-operand {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.2rem;
+    min-height: 28px;
 }
 
-code {
-    background: #f0f0f0;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'Courier New', Courier, monospace;
-    color: #e74c3c;
+.current-operand {
+    font-size: 2rem;
+    font-weight: bold;
 }
 
-ul {
-    padding-left: 20px;
+/* Buttons */
+button {
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    padding: 15px;
+    margin: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-li {
-    margin-bottom: 8px;
+button:active {
+    transform: scale(0.95);
+}
+
+.number {
+    background-color: #4d4d4d;
+    color: white;
+    width: 60px;
+    height: 60px;
+}
+
+.number:hover {
+    background-color: #666666;
+}
+
+.operator {
+    background-color: #ff9500;
+    color: white;
+    width: 60px;
+    height: 60px;
+}
+
+.operator:hover {
+    background-color: #ffaa33;
+}
+
+.span-two {
+    width: 130px;
+}
+
+#clear {
+    background-color: #ff3b30;
+    color: white;
+}
+
+#clear:hover {
+    background-color: #ff5e54;
+}
+
+#delete {
+    background-color: #007aff;
+    color: white;
+}
+
+#delete:hover {
+    background-color: #4da3ff;
+}
+
+/* Button grid layout */
+.calculator {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 10px;
+}
+
+.span-two {
+    grid-column: span 2;
 }
