@@ -3,6 +3,64 @@ let firstNumber = '';      // First number in the operation
 let operator = '';         // The operator (+, -, *, /)
 let secondNumber = '';     // Second number in the operation
 let resetScreen = false;   // Flag to know when to reset the display
+let currentInput = '0';    // Current number being entered
+
+// DOM Elements
+const currentOperandDisplay = document.querySelector('.current-operand');
+const previousOperandDisplay = document.querySelector('.previous-operand');
+const numberButtons = document.querySelectorAll('.number');
+const operatorButtons = document.querySelectorAll('.operator');
+const equalsButton = document.querySelector('.operator[value="="]');
+const clearButton = document.getElementById('clear');
+const deleteButton = document.getElementById('delete');
+
+// Update the display
+function updateDisplay() {
+    currentOperandDisplay.textContent = currentInput;
+    
+    // Update the previous operand display if we have an operator
+    if (operator) {
+        previousOperandDisplay.textContent = `${firstNumber} ${operator}`;
+    } else {
+        previousOperandDisplay.textContent = '';
+    }
+}
+
+// Add a digit to the current input
+function appendNumber(number) {
+    // If the display shows '0' or we need to reset, replace it with the new number
+    if (currentInput === '0' || resetScreen) {
+        currentInput = number;
+        resetScreen = false;
+    } else {
+        // Otherwise, append the number to the current input
+        currentInput += number;
+    }
+    updateDisplay();
+}
+
+// Handle number button clicks
+numberButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        appendNumber(button.textContent);
+    });
+});
+
+// Clear the calculator
+function clear() {
+    currentInput = '0';
+    firstNumber = '';
+    operator = '';
+    secondNumber = '';
+    resetScreen = false;
+    updateDisplay();
+}
+
+// Set up event listeners
+clearButton.addEventListener('click', clear);
+
+// Initialize the display
+updateDisplay();
 
 // Basic math operations
 function add(a, b) {
