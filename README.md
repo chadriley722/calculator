@@ -27,14 +27,6 @@ A simple, interactive calculator web application built with HTML, CSS, and JavaS
 - Press '⌫' to delete the last digit
 - Use your keyboard for input (numbers, operators, Enter, Backspace, Escape)
 
-## Future Enhancements
-
-- Add scientific calculator functions
-- Support for keyboard input
-- Theme switcher (light/dark mode)
-- Calculation history
-- Memory functions (M+, M-, MR, MC)
-
 ## Technologies Used
 
 - HTML5
