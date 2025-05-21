@@ -16,7 +16,12 @@ const deleteButton = document.getElementById('delete');
 
 // Update the display
 function updateDisplay() {
-    currentOperandDisplay.textContent = currentInput;
+    // Limit the number of decimal places to 8 to prevent overflow
+    const displayNumber = currentInput.includes('.') 
+        ? parseFloat(currentInput).toFixed(8).replace(/\.?0+$/, '')
+        : currentInput;
+        
+    currentOperandDisplay.textContent = displayNumber;
     
     // Update the previous operand display if we have an operator
     if (operator) {
@@ -28,11 +33,16 @@ function updateDisplay() {
 
 // Add a digit to the current input
 function appendNumber(number) {
+    // If we have a result displayed and no operator is set, start a new calculation
+    if (!operator && firstNumber && !resetScreen) {
+        clear();
+    }
+    
     // If the display shows '0' or we need to reset, replace it with the new number
     if (currentInput === '0' || resetScreen) {
         currentInput = number;
         resetScreen = false;
-    } else {
+    } else if (currentInput.length < 12) { // Limit input length to prevent overflow
         // Otherwise, append the number to the current input
         currentInput += number;
     }
@@ -46,6 +56,55 @@ numberButtons.forEach(button => {
     });
 });
 
+// Handle operator button clicks
+function handleOperator(newOperator) {
+    // If we're in the middle of a calculation (have a first number and operator)
+    // and the user presses another operator, calculate the result first
+    if (firstNumber && operator && !resetScreen) {
+        calculate();
+    } else if (!firstNumber) {
+        // If no first number yet, use the current input
+        firstNumber = currentInput;
+    }
+    
+    operator = newOperator;
+    resetScreen = true;
+    updateDisplay();
+}
+
+// Perform the calculation
+function calculate() {
+    // Don't calculate if we don't have all the required values
+    if (operator === '' || firstNumber === '') return;
+    
+    // Don't calculate if we don't have a second number and the user didn't just press '='
+    if (resetScreen && secondNumber === '') return;
+    
+    // If we have a second number, use it; otherwise, use the current input
+    const secondNum = resetScreen ? secondNumber : currentInput;
+    
+    try {
+        const result = operate(operator, firstNumber, secondNum);
+        
+        // Handle division by zero
+        if (result === Infinity || isNaN(result)) {
+            throw new Error('Nice try, but you can\'t divide by zero!');
+        }
+        
+        // Update the display with the result
+        currentInput = result.toString();
+        firstNumber = currentInput; // Store the result as the first number for chaining
+        secondNumber = secondNum; // Store the second number in case of chaining
+        resetScreen = true;
+        updateDisplay();
+    } catch (error) {
+        // Display error message
+        currentOperandDisplay.textContent = error.message;
+        // Reset the calculator after a short delay
+        setTimeout(clear, 1500);
+    }
+}
+
 // Clear the calculator
 function clear() {
     currentInput = '0';
@@ -56,8 +115,84 @@ function clear() {
     updateDisplay();
 }
 
+// Handle decimal point
+function inputDecimal() {
+    if (resetScreen) {
+        currentInput = '0.';
+        resetScreen = false;
+        return;
+    }
+    
+    // Only add a decimal if there isn't already one
+    if (!currentInput.includes('.')) {
+        currentInput += '.';
+    }
+}
+
+// Delete the last digit
+function deleteLastDigit() {
+    if (currentInput.length === 1) {
+        currentInput = '0';
+    } else if (currentInput !== '0' && !resetScreen) {
+        currentInput = currentInput.slice(0, -1);
+    }
+    updateDisplay();
+}
+
 // Set up event listeners
 clearButton.addEventListener('click', clear);
+deleteButton.addEventListener('click', deleteLastDigit);
+
+// Add event listeners for operator buttons
+operatorButtons.forEach(button => {
+    // Skip the equals button as it's handled separately
+    if (button.textContent !== '=') {
+        button.addEventListener('click', () => {
+            handleOperator(button.textContent);
+        });
+    } else {
+        // Handle equals button
+        button.addEventListener('click', () => {
+            if (operator && firstNumber) {
+                calculate();
+            }
+        });
+    }
+});
+
+// Add event listener for decimal button
+document.querySelector('.decimal').addEventListener('click', () => {
+    if (resetScreen) {
+        currentInput = '0';
+        resetScreen = false;
+    }
+    inputDecimal();
+    updateDisplay();
+});
+
+// Handle keyboard input
+document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') {
+        appendNumber(e.key);
+    } else if (['+', '-', '*', '/'].includes(e.key)) {
+        handleOperator(e.key);
+    } else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        if (operator && firstNumber) {
+            calculate();
+        }
+    } else if (e.key === '.') {
+        inputDecimal();
+        updateDisplay();
+    } else if (e.key === 'Backspace') {
+        deleteLastDigit();
+    } else if (e.key === 'Escape') {
+        clear();
+    }
+});
+
+// Add decimal button class to the dot button
+document.querySelector('.number:last-of-type').classList.add('decimal');
 
 // Initialize the display
 updateDisplay();
@@ -92,27 +227,45 @@ function divide(a, b) {
  */
 function operate(operator, a, b) {
     const numA = typeof a === 'string' ? parseFloat(a) : a;
-    const numB = typeof b === 'string' ? parseFloat(b) : b;
+    let numB = typeof b === 'string' ? parseFloat(b) : b;
     
-    if (isNaN(numA) || isNaN(numB)) {
-        throw new Error('Both arguments must be valid numbers');
+    if (isNaN(numA) || (b !== undefined && isNaN(numB))) {
+        throw new Error('Invalid numbers provided');
     }
     
+    // If we don't have a second number (happens when chaining operations),
+    // use the first number as the second number
+    if (b === undefined) {
+        numB = numA;
+    }
+    
+    let result;
     switch (operator) {
         case '+':
-            return add(numA, numB);
+            result = add(numA, numB);
+            break;
         case '-':
-            return subtract(numA, numB);
+            result = subtract(numA, numB);
+            break;
         case '*':
-            return multiply(numA, numB);
+            result = multiply(numA, numB);
+            break;
+        case '×':
+            result = multiply(numA, numB);
+            break;
         case '/':
+        case '÷':
             if (numB === 0) {
-                throw new Error('Division by zero is not allowed');
+                throw new Error('Division by zero');
             }
-            return divide(numA, numB);
+            result = divide(numA, numB);
+            break;
         default:
             throw new Error('Invalid operator');
     }
+    
+    // Round to 8 decimal places to avoid floating point errors
+    return Math.round(result * 100000000) / 100000000;
 }
 
 // Test the operation with variables
